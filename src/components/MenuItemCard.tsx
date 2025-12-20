@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, memo, useCallback } from 'react';
 import Image from 'next/image';
 import { MenuItem } from '@/types';
 import { useCart } from '@/contexts/CartContext';
@@ -13,13 +13,15 @@ interface MenuItemCardProps {
     isLoading?: boolean;
 }
 
-export function MenuItemCard({ item, onAddToCart, onItemClick, isLoading: externalLoading }: MenuItemCardProps) {
-    const { addToCart, isLoading: cartLoading } = useCart();
+function MenuItemCardComponent({ item, onAddToCart, onItemClick, isLoading: externalLoading }: MenuItemCardProps) {
+    // Only get addToCart function, not isLoading to prevent rerenders
+    const { addToCart } = useCart();
     const [imageError, setImageError] = useState(false);
     const [isAdding, setIsAdding] = useState(false);
 
-    // Use external loading state if provided, otherwise use cart loading state
-    const isLoadingState = externalLoading || cartLoading || isAdding;
+    // Use external loading state if provided, otherwise use local isAdding state only
+    // Don't use global cartLoading to prevent all cards from rerendering
+    const isLoadingState = externalLoading || isAdding;
 
     // ✅ Compute image source once (and avoid "" passing into <Image />)
     const imageSrc = useMemo(() => {
@@ -28,7 +30,7 @@ export function MenuItemCard({ item, onAddToCart, onItemClick, isLoading: extern
         return src && src.trim().length > 0 ? src : null;
     }, [item]);
 
-    const handleAddToCart = async () => {
+    const handleAddToCart = useCallback(async () => {
         // If item has size selection, open modal instead
         if (item.size_prices && Object.keys(item.size_prices).length > 0) {
             if (onItemClick) {
@@ -51,7 +53,7 @@ export function MenuItemCard({ item, onAddToCart, onItemClick, isLoading: extern
         } finally {
             setIsAdding(false);
         }
-    };
+    }, [item.id, item.size_prices, onAddToCart, onItemClick, addToCart]);
 
     const formatPrice = (price: number): string => {
         return new Intl.NumberFormat('en-US', {
@@ -60,15 +62,15 @@ export function MenuItemCard({ item, onAddToCart, onItemClick, isLoading: extern
         }).format(price);
     };
 
-    const handleCardClick = () => {
+    const handleCardClick = useCallback(() => {
         if (onItemClick) {
             onItemClick(item);
         }
-    };
+    }, [item, onItemClick]);
 
     return (
         <article
-            className={`bg-white dark:bg-gray-800 rounded-lg shadow-xl hover:shadow-2xl transition-shadow duration-300 overflow-hidden ${onItemClick ? 'cursor-pointer' : ''
+            className={`bg-white rounded-lg shadow-lg hover:shadow-2xl hover:shadow-amber-500/40 hover:-translate-y-1 transition-all duration-300 overflow-hidden border border-gray-200 ${onItemClick ? 'cursor-pointer' : ''
                 }`}
             onClick={handleCardClick}
             role={onItemClick ? 'button' : undefined}
@@ -82,7 +84,7 @@ export function MenuItemCard({ item, onAddToCart, onItemClick, isLoading: extern
             aria-label={onItemClick ? `View details for ${item.name}` : undefined}
         >
             {/* Image Section */}
-            <div className="relative w-full h-48 bg-gray-200 dark:bg-gray-700">
+            <div className="relative w-full h-48 bg-gray-100">
                 {imageSrc ? (
                     <div className="relative w-full h-full">
                         {!imageError ? (
@@ -112,8 +114,8 @@ export function MenuItemCard({ item, onAddToCart, onItemClick, isLoading: extern
                         )}
                     </div>
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700">
-                        <div className="text-center text-gray-500 dark:text-gray-400">
+                    <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                        <div className="text-center text-gray-500">
                             <svg
                                 className="mx-auto h-12 w-12 mb-2"
                                 fill="none"
@@ -142,35 +144,35 @@ export function MenuItemCard({ item, onAddToCart, onItemClick, isLoading: extern
                         item.categories.map((cat, idx) => (
                             <span 
                                 key={idx}
-                                className="px-2 py-1 text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-full" 
+                                className="px-2 py-1 text-xs font-medium bg-amber-100 text-amber-800 rounded-full" 
                                 aria-label={`Category: ${cat}`}
                             >
                                 {cat}
                             </span>
                         ))
                     ) : item.category ? (
-                        <span className="px-2 py-1 text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-full" aria-label={`Category: ${item.category}`}>
+                        <span className="px-2 py-1 text-xs font-medium bg-amber-100 text-amber-800 rounded-full" aria-label={`Category: ${item.category}`}>
                             {item.category}
                         </span>
                     ) : null}
                     {item.is_veg === true ? (
-                        <span className="px-2 py-1 text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-full flex items-center gap-1" aria-label="Vegetarian">
-                            <span className="w-1.5 h-1.5 bg-green-600 dark:bg-green-400 rounded-full" aria-hidden="true"></span>
+                        <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full flex items-center gap-1" aria-label="Vegetarian">
+                            <span className="w-1.5 h-1.5 bg-green-600 rounded-full" aria-hidden="true"></span>
                             Veg
                         </span>
                     ) : item.is_veg === false ? (
-                        <span className="px-2 py-1 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 rounded-full flex items-center gap-1" aria-label="Non-vegetarian">
-                            <span className="w-1.5 h-1.5 bg-red-600 dark:bg-red-400 rounded-full" aria-hidden="true"></span>
+                        <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full flex items-center gap-1" aria-label="Non-vegetarian">
+                            <span className="w-1.5 h-1.5 bg-red-600 rounded-full" aria-hidden="true"></span>
                             Non-Veg
                         </span>
                     ) : null}
                     {item.size_prices && Object.keys(item.size_prices).length > 0 && (
-                        <span className="px-2 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full" aria-label="Available in multiple sizes">
+                        <span className="px-2 py-1 text-xs font-medium bg-amber-100 text-amber-800 rounded-full" aria-label="Available in multiple sizes">
                             Sizes Available
                         </span>
                     )}
                     {item.size && !item.size_prices && (
-                        <span className="px-2 py-1 text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 rounded-full" aria-label={`Size: ${item.size}`}>
+                        <span className="px-2 py-1 text-xs font-medium bg-amber-100 text-amber-800 rounded-full" aria-label={`Size: ${item.size}`}>
                             {item.size}
                         </span>
                     )}
@@ -178,24 +180,24 @@ export function MenuItemCard({ item, onAddToCart, onItemClick, isLoading: extern
 
                 {/* Name and Price */}
                 <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white line-clamp-2">
+                    <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
                         {item.name}
                     </h3>
-                    <span className="text-lg font-bold text-green-600 dark:text-green-400 ml-2 shrink-0" aria-label={`Price: ${formatPrice(item.price)}`}>
+                    <span className="text-lg font-bold text-[#F97316] ml-2 shrink-0" aria-label={`Price: ${formatPrice(item.price)}`}>
                         {formatPrice(item.price)}
                     </span>
                 </div>
 
                 {/* Size */}
                 {item.size && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                    <p className="text-xs text-gray-600 mb-2">
                         Size: {item.size}
                     </p>
                 )}
 
                 {/* Description */}
                 {item.description && (
-                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-3">
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">
                         {item.description}
                     </p>
                 )}
@@ -207,9 +209,9 @@ export function MenuItemCard({ item, onAddToCart, onItemClick, isLoading: extern
                         handleAddToCart();
                     }}
                     disabled={isLoadingState}
-                    className={`w-full py-2 px-4 rounded-md font-medium transition-colors duration-200 ${isLoadingState
-                        ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-                        : 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white hover:shadow-md'
+                    className={`w-full py-2 px-4 rounded-md font-medium transition-all duration-200 ${isLoadingState
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        : 'bg-[#F97316] hover:bg-[#EA580C] text-white hover:shadow-lg hover:shadow-[#F97316]/50 font-semibold'
                         }`}
                     aria-label={`Add ${item.name} to cart`}
                 >
@@ -245,5 +247,21 @@ export function MenuItemCard({ item, onAddToCart, onItemClick, isLoading: extern
         </article>
     );
 }
+
+// Memoize the component to prevent unnecessary rerenders
+export const MenuItemCard = memo(MenuItemCardComponent, (prevProps, nextProps) => {
+    // Only rerender if these props change
+    return (
+        prevProps.item.id === nextProps.item.id &&
+        prevProps.item.name === nextProps.item.name &&
+        prevProps.item.price === nextProps.item.price &&
+        prevProps.item.image_url === nextProps.item.image_url &&
+        prevProps.isLoading === nextProps.isLoading &&
+        prevProps.onAddToCart === nextProps.onAddToCart &&
+        prevProps.onItemClick === nextProps.onItemClick
+    );
+});
+
+MenuItemCard.displayName = 'MenuItemCard';
 
 export default MenuItemCard;

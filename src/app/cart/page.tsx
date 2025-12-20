@@ -1,12 +1,34 @@
 'use client';
 
-
+import { useMemo, useCallback } from 'react';
 import { useCart } from '@/contexts/CartContext';
 import { CartItem } from '@/components/CartItem';
 import { CartSummary } from '@/components/CartSummary';
 
 export default function CartPage() {
     const { cart, isLoading, error, clearCart } = useCart();
+    
+    // Memoize sorted cart items to prevent recalculation on every render
+    const sortedCartItems = useMemo(() => {
+        if (!cart?.cart?.cart_items) return [];
+        return [...cart.cart.cart_items].sort((a, b) => a.id - b.id);
+    }, [cart?.cart?.cart_items]);
+
+    // Empty cart state - handled by CartSummary component
+    const hasItems = useMemo(() => 
+        cart && cart.cart.cart_items.length > 0,
+        [cart]
+    );
+    
+    const handleClearCart = useCallback(async () => {
+        if (window.confirm('Are you sure you want to clear your cart? This action cannot be undone.')) {
+            try {
+                await clearCart();
+            } catch (error) {
+                console.error('Failed to clear cart:', error);
+            }
+        }
+    }, [clearCart]);
 
     // Loading state
     if (isLoading) {
@@ -105,9 +127,6 @@ export default function CartPage() {
         );
     }
 
-    // Empty cart state - handled by CartSummary component
-    const hasItems = cart && cart.cart.cart_items.length > 0;
-
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -141,15 +160,7 @@ export default function CartPage() {
                                         </p>
                                     </div>
                                     <button
-                                        onClick={async () => {
-                                            if (window.confirm('Are you sure you want to clear your cart? This action cannot be undone.')) {
-                                                try {
-                                                    await clearCart();
-                                                } catch (error) {
-                                                    console.error('Failed to clear cart:', error);
-                                                }
-                                            }
-                                        }}
+                                        onClick={handleClearCart}
                                         disabled={isLoading}
                                         className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${isLoading
                                             ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
@@ -201,8 +212,8 @@ export default function CartPage() {
                                     </button>
                                 </div>
 
-                                {/* Cart Items List */}
-                                {cart.cart.cart_items.map((item) => (
+                                {/* Cart Items List - Using memoized sorted items */}
+                                {sortedCartItems.map((item) => (
                                     <CartItem
                                         key={item.id}
                                         item={item}

@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { MenuItem } from '@/types';
 import { menuApi } from '@/lib/api';
 import { MenuItemCard } from '@/components/MenuItemCard';
 import { MenuItemModal } from '@/components/MenuItemModal';
+import { CategoryBar } from '@/components/CategoryBar';
 
 export default function MenuPage() {
     const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -40,10 +41,10 @@ export default function MenuPage() {
         loadMenuItems();
     };
 
-    const handleItemClick = (item: MenuItem) => {
+    const handleItemClick = useCallback((item: MenuItem) => {
         setSelectedItem(item);
         setIsModalOpen(true);
-    };
+    }, []);
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
@@ -99,35 +100,35 @@ export default function MenuPage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-                <div className="container mx-auto px-4 py-8">
-                    <div className="mb-8">
-                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            <div className="min-h-screen bg-gray-900">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                    <div className="mb-6">
+                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
                             Our Menu
                         </h1>
-                        <p className="text-gray-600 dark:text-gray-300">
+                        <p className="text-gray-600 dark:text-gray-400 text-sm">
                             Discover our delicious selection of items
                         </p>
                     </div>
 
                     {/* Loading State */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                         {Array.from({ length: 8 }).map((_, index) => (
                             <div
                                 key={index}
-                                className="bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden animate-pulse"
+                                className="bg-white rounded-lg shadow-lg overflow-hidden animate-pulse border border-gray-200"
                             >
-                                <div className="w-full h-48 bg-gray-200 dark:bg-gray-700"></div>
+                                <div className="w-full h-48 bg-gray-200"></div>
                                 <div className="p-4">
                                     <div className="flex justify-between items-start mb-2">
-                                        <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-                                        <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
+                                        <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+                                        <div className="h-6 bg-gray-200 rounded w-16"></div>
                                     </div>
                                     <div className="space-y-2 mb-4">
-                                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
-                                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
+                                        <div className="h-4 bg-gray-200 rounded w-full"></div>
+                                        <div className="h-4 bg-gray-200 rounded w-2/3"></div>
                                     </div>
-                                    <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                                    <div className="h-10 bg-gray-200 rounded"></div>
                                 </div>
                             </div>
                         ))}
@@ -139,13 +140,13 @@ export default function MenuPage() {
 
     if (error) {
         return (
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-                <div className="container mx-auto px-4 py-8">
-                    <div className="mb-8">
-                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            <div className="min-h-screen bg-gray-900">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                    <div className="mb-6">
+                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
                             Our Menu
                         </h1>
-                        <p className="text-gray-600 dark:text-gray-300">
+                        <p className="text-gray-600 dark:text-gray-400 text-sm">
                             Discover our delicious selection of items
                         </p>
                     </div>
@@ -168,15 +169,15 @@ export default function MenuPage() {
                                     />
                                 </svg>
                             </div>
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">
                                 Unable to Load Menu
                             </h3>
-                            <p className="text-gray-600 dark:text-gray-300 mb-6">
+                            <p className="text-gray-600 mb-6">
                                 {error}
                             </p>
                             <button
                                 onClick={handleRetry}
-                                className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-medium rounded-md transition-colors duration-200"
+                                className="inline-flex items-center px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-md transition-colors duration-200"
                             >
                                 <svg
                                     className="mr-2 h-4 w-4"
@@ -201,52 +202,85 @@ export default function MenuPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <div className="container mx-auto px-4 py-8">
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+        <div className="min-h-screen bg-[#F5F1EB]">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                {/* Page Header */}
+                <div className="mb-6">
+                    <h1 className="text-3xl font-bold text-gray-900 mb-1">
                         Our Menu
                     </h1>
-                    <p className="text-gray-600 dark:text-gray-300">
+                    <p className="text-gray-600 text-sm">
                         Discover our delicious selection of items
                     </p>
                 </div>
 
-                {/* Category Filter */}
-                <div className="mb-8">
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                        Categories
-                    </h2>
-                    <div className="flex flex-wrap gap-2">
-                        {categories.length > 0 ? (
-                            categories.map((category) => (
-                                <button
-                                    key={category}
-                                    onClick={() => setSelectedCategory(category)}
-                                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 ${selectedCategory === category
-                                        ? 'bg-amber-600 text-white shadow-md'
-                                        : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-amber-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600'
-                                        }`}
-                                >
-                                    {category}
-                                </button>
-                            ))
-                        ) : (
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                                No categories available
-                            </p>
-                        )}
-                    </div>
-                    {selectedCategory !== 'All' && filteredItems.length > 0 && (
-                        <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-                            Showing {filteredItems.length} item{filteredItems.length !== 1 ? 's' : ''} in {selectedCategory}
-                        </p>
-                    )}
+                {/* Category Bar - Horizontal Scrollable - Sticky */}
+                <div className="sticky top-16 z-40 mb-4 bg-[#F5F1EB] pt-2 pb-2 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 border-b border-gray-200">
+                    <CategoryBar
+                        categories={categories}
+                        selectedCategory={selectedCategory}
+                        onCategorySelect={setSelectedCategory}
+                    />
                 </div>
+
+                {/* Filter Bar */}
+                <div className="mb-6 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                    <button className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 whitespace-nowrap shadow-sm">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                        </svg>
+                        Offers
+                    </button>
+                    <button className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 whitespace-nowrap">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                        Delivery Fee
+                    </button>
+                    <button className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 whitespace-nowrap">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Under 30 min
+                    </button>
+                    <button className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 whitespace-nowrap">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                        </svg>
+                        Highest rated
+                    </button>
+                    <button className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 whitespace-nowrap">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                        </svg>
+                        Rating
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <button className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 whitespace-nowrap">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
+                        </svg>
+                        Sort
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                </div>
+
+                {/* Results Count */}
+                {selectedCategory !== 'All' && filteredItems.length > 0 && (
+                    <div className="mb-4">
+                        <p className="text-sm text-gray-600">
+                            Showing <span className="font-semibold text-gray-900">{filteredItems.length}</span> item{filteredItems.length !== 1 ? 's' : ''} in <span className="font-semibold text-gray-900">{selectedCategory}</span>
+                        </p>
+                    </div>
+                )}
 
                 {/* Menu Items Grid */}
                 {filteredItems.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                         {filteredItems.map((item) => (
                             <MenuItemCard
                                 key={item.id}
@@ -273,15 +307,15 @@ export default function MenuPage() {
                                     />
                                 </svg>
                             </div>
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">
                                 No items in this category
                             </h3>
-                            <p className="text-gray-600 dark:text-gray-300 mb-6">
+                            <p className="text-gray-600 mb-6">
                                 Try selecting a different category or view all items.
                             </p>
                             <button
                                 onClick={() => setSelectedCategory('All')}
-                                className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-medium rounded-md transition-colors duration-200"
+                                className="inline-flex items-center px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-md transition-colors duration-200"
                             >
                                 View All Items
                             </button>
@@ -305,15 +339,15 @@ export default function MenuPage() {
                                     />
                                 </svg>
                             </div>
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">
                                 No Menu Items Available
                             </h3>
-                            <p className="text-gray-600 dark:text-gray-300 mb-6">
+                            <p className="text-gray-600 mb-6">
                                 There are currently no items available in our menu. Please check back later.
                             </p>
                             <button
                                 onClick={handleRetry}
-                                className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-medium rounded-md transition-colors duration-200"
+                                className="inline-flex items-center px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-md transition-colors duration-200"
                             >
                                 <svg
                                     className="mr-2 h-4 w-4"

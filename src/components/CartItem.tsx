@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, memo, useCallback } from 'react';
 import Image from 'next/image';
 import { CartItem as CartItemType } from '@/types';
 import { useCart } from '@/contexts/CartContext';
@@ -13,17 +13,19 @@ interface CartItemProps {
     isLoading?: boolean;
 }
 
-export function CartItem({ item, onUpdateQuantity, onRemove, isLoading: externalLoading }: CartItemProps) {
-    const { updateCartItem, removeFromCart, isLoading: cartLoading } = useCart();
+function CartItemComponent({ item, onUpdateQuantity, onRemove, isLoading: externalLoading }: CartItemProps) {
+    // Only get functions, not isLoading to prevent rerenders
+    const { updateCartItem, removeFromCart } = useCart();
     const [imageError, setImageError] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
     const [isRemoving, setIsRemoving] = useState(false);
 
-    // Use external loading state if provided, otherwise use cart loading state
-    const isLoadingState = externalLoading || cartLoading || isUpdating || isRemoving;
+    // Use external loading state if provided, otherwise use only local state
+    // Don't use global cartLoading to prevent all items from rerendering
+    const isLoadingState = externalLoading || isUpdating || isRemoving;
 
-    const handleQuantityChange = async (newQuantity: number) => {
-        if (newQuantity <= 0 || newQuantity === item.quantity) {
+    const handleQuantityChange = useCallback(async (newQuantity: number) => {
+        if (newQuantity <= 0) {
             return;
         }
 
@@ -41,9 +43,9 @@ export function CartItem({ item, onUpdateQuantity, onRemove, isLoading: external
         } finally {
             setIsUpdating(false);
         }
-    };
+    }, [item.id, onUpdateQuantity, updateCartItem]);
 
-    const handleRemove = async () => {
+    const handleRemove = useCallback(async () => {
         setIsRemoving(true);
         try {
             if (onRemove) {
@@ -58,7 +60,7 @@ export function CartItem({ item, onUpdateQuantity, onRemove, isLoading: external
         } finally {
             setIsRemoving(false);
         }
-    };
+    }, [item.id, onRemove, removeFromCart]);
 
     const formatPrice = (price: number): string => {
         return new Intl.NumberFormat('en-US', {
@@ -270,5 +272,23 @@ export function CartItem({ item, onUpdateQuantity, onRemove, isLoading: external
         </article>
     );
 }
+
+// Memoize the component to prevent unnecessary rerenders
+export const CartItem = memo(CartItemComponent, (prevProps, nextProps) => {
+    // Only rerender if these props change
+    // Return true if props are equal (don't rerender), false if different (rerender)
+    return (
+        prevProps.item.id === nextProps.item.id &&
+        prevProps.item.quantity === nextProps.item.quantity &&
+        prevProps.item.item_price === nextProps.item.item_price &&
+        prevProps.item.menu_item?.id === nextProps.item.menu_item?.id &&
+        prevProps.item.menu_item?.name === nextProps.item.menu_item?.name &&
+        prevProps.isLoading === nextProps.isLoading &&
+        prevProps.onUpdateQuantity === nextProps.onUpdateQuantity &&
+        prevProps.onRemove === nextProps.onRemove
+    );
+});
+
+CartItem.displayName = 'CartItem';
 
 export default CartItem;

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback, ReactNode } from 'react';
 import { CartSummary, OrderConfirmation } from '@/types';
 import { cartApi, ordersApi } from '@/lib/api';
 import { getCurrentSessionId, ensureValidSession, recoverSession } from '@/lib/session';
@@ -85,30 +85,8 @@ interface CartProviderProps {
 export function CartProvider({ children }: CartProviderProps) {
     const [state, dispatch] = useReducer(cartReducer, initialState);
 
-    // Initialize session on mount
-    useEffect(() => {
-        try {
-            // Ensure we have a valid session
-            const session = ensureValidSession();
-            dispatch({ type: 'SET_SESSION_ID', payload: session.sessionId });
-
-            // Load existing cart for the session
-            loadCart(session.sessionId);
-        } catch (error) {
-            console.error('Failed to initialize session:', error);
-            // Try to recover session
-            try {
-                const recoveredSession = recoverSession();
-                dispatch({ type: 'SET_SESSION_ID', payload: recoveredSession.sessionId });
-                loadCart(recoveredSession.sessionId);
-            } catch (recoveryError) {
-                dispatch({ type: 'SET_ERROR', payload: 'Failed to initialize session. Please refresh the page.' });
-            }
-        }
-    }, []);
-
     // Load cart from API with retry logic
-    const loadCart = async (sessionId: string) => {
+    const loadCart = useCallback(async (sessionId: string) => {
         dispatch({ type: 'SET_LOADING', payload: true });
         try {
             const cartSummary = await retry(
@@ -141,7 +119,29 @@ export function CartProvider({ children }: CartProviderProps) {
                 }
             }
         }
-    };
+    }, []);
+
+    // Initialize session on mount
+    useEffect(() => {
+        try {
+            // Ensure we have a valid session
+            const session = ensureValidSession();
+            dispatch({ type: 'SET_SESSION_ID', payload: session.sessionId });
+
+            // Load existing cart for the session
+            loadCart(session.sessionId);
+        } catch (error) {
+            console.error('Failed to initialize session:', error);
+            // Try to recover session
+            try {
+                const recoveredSession = recoverSession();
+                dispatch({ type: 'SET_SESSION_ID', payload: recoveredSession.sessionId });
+                loadCart(recoveredSession.sessionId);
+            } catch (recoveryError) {
+                dispatch({ type: 'SET_ERROR', payload: 'Failed to initialize session. Please refresh the page.' });
+            }
+        }
+    }, [loadCart]);
 
     // Add item to cart with retry and session recovery
     const addToCart = async (itemId: number, quantity: number, size?: string): Promise<void> => {

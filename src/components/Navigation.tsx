@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCart } from '@/contexts/CartContext';
@@ -10,7 +11,8 @@ export default function Navigation() {
     const pathname = usePathname();
     const { cart } = useCart();
 
-    const totalItems = cart?.total_items || 0;
+    // Memoize totalItems to prevent recalculation
+    const totalItems = useMemo(() => cart?.total_items || 0, [cart?.total_items]);
 
     const navItems = [
         {
@@ -43,16 +45,16 @@ export default function Navigation() {
     ];
 
     return (
-        <nav className="bg-white shadow-sm border-b border-gray-200" role="navigation" aria-label="Main navigation">
-            <div className="max-w-7xl mx-auto   px-4 sm:px-6 lg:px-8">
+        <nav className="sticky top-0 z-50 bg-[#8B3E47] shadow-lg border-b border-[#722F37]" role="navigation" aria-label="Main navigation">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-16">
                     {/* Logo/Brand */}
                     <div className="flex items-center">
                         <Link href="/menu" className="flex items-center space-x-2" aria-label="Cafe - Go to menu">
-                            <div className="w-12 h-12 bg-amber-500 rounded-full flex items-center justify-center" aria-hidden="true">
+                            <div className="w-12 h-12 bg-[#F97316] rounded-full flex items-center justify-center shadow-md" aria-hidden="true">
                                 <span className="text-white font-bold text-sm">SA</span>
                             </div>
-                            <span className="text-xl font-semibold text-gray-900">sASWALs Cafe</span>
+                            <span className="text-xl font-semibold text-white">sASWALs Cafe</span>
                         </Link>
                     </div>
 
@@ -67,14 +69,14 @@ export default function Navigation() {
                                     key={item.name}
                                     href={item.href}
                                     className={`relative flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive
-                                        ? 'text-amber-600 bg-amber-50'
-                                        : 'text-gray-700 hover:text-amber-600 hover:bg-gray-50'
+                                        ? 'text-white bg-[#F97316]'
+                                        : 'text-gray-200 hover:text-white hover:bg-[#722F37]'
                                         }`}
                                 >
                                     <Icon className="w-5 h-5" />
                                     <span>{item.name}</span>
                                     {item.badge && (
-                                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center" aria-label={`${item.badge} items in cart`}>
+                                        <span className="absolute -top-1 -right-1 bg-[#F97316] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center shadow-md" aria-label={`${item.badge} items in cart`}>
                                             <span aria-hidden="true">{item.badge > 99 ? '99+' : item.badge}</span>
                                         </span>
                                     )}
@@ -94,14 +96,14 @@ export default function Navigation() {
                                     key={item.name}
                                     href={item.href}
                                     className={`relative p-2 rounded-md transition-colors ${isActive
-                                        ? 'text-amber-600 bg-amber-50'
-                                        : 'text-gray-700 hover:text-amber-600 hover:bg-gray-50'
+                                        ? 'text-white bg-amber-500'
+                                        : 'text-gray-200 hover:text-white hover:bg-[#8B3E47]'
                                         }`}
                                     aria-label={item.name}
                                 >
                                     <Icon className="w-6 h-6" />
                                     {item.badge && (
-                                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center" aria-label={`${item.badge} items in cart`}>
+                                        <span className="absolute -top-1 -right-1 bg-[#F97316] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center shadow-md" aria-label={`${item.badge} items in cart`}>
                                             <span aria-hidden="true">{item.badge > 99 ? '99+' : item.badge}</span>
                                         </span>
                                     )}

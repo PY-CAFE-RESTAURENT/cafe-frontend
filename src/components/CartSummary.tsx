@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/contexts/CartContext';
 import { useUI } from '@/contexts/UIContext';
@@ -19,17 +19,25 @@ export function CartSummary({
     isLoading: externalLoading
 }: CartSummaryProps) {
     const router = useRouter();
-    const { cart, placeOrder, isLoading: cartLoading } = useCart();
+    const { cart, placeOrder } = useCart();
     const { showToast } = useUI();
     const [isCheckingOut, setIsCheckingOut] = useState(false);
     const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
-    // Use external loading state if provided, otherwise use cart loading state
-    const isLoadingState = externalLoading || cartLoading || isCheckingOut;
+    // Use external loading state if provided, otherwise use only local state
+    // Don't use global cartLoading to prevent unnecessary rerenders
+    const isLoadingState = externalLoading || isCheckingOut;
 
     // Use props if provided, otherwise get from cart context
-    const displayTotalAmount = totalAmount ?? cart?.total_amount ?? 0;
-    const displayTotalItems = totalItems ?? cart?.total_items ?? 0;
+    // Memoize to prevent recalculation on every render
+    const displayTotalAmount = useMemo(() => 
+        totalAmount ?? cart?.total_amount ?? 0,
+        [totalAmount, cart?.total_amount]
+    );
+    const displayTotalItems = useMemo(() => 
+        totalItems ?? cart?.total_items ?? 0,
+        [totalItems, cart?.total_items]
+    );
 
     const formatPrice = (price: number): string => {
         return new Intl.NumberFormat('en-US', {
