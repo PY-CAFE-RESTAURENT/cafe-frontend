@@ -13,7 +13,7 @@ export function getOrderStatusLabel(status: OrderStatus): string {
         case 'cancelled':
             return 'Cancelled';
         default:
-            return status.charAt(0).toUpperCase() + status.slice(1);
+            return (status as string).charAt(0).toUpperCase() + (status as string).slice(1);
     }
 }
 

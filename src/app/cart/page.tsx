@@ -7,7 +7,7 @@ import { CartSummary } from '@/components/CartSummary';
 
 export default function CartPage() {
     const { cart, isLoading, error, clearCart } = useCart();
-    
+
     // Memoize sorted cart items to prevent recalculation on every render
     const sortedCartItems = useMemo(() => {
         if (!cart?.cart?.cart_items) return [];
@@ -15,11 +15,11 @@ export default function CartPage() {
     }, [cart?.cart?.cart_items]);
 
     // Empty cart state - handled by CartSummary component
-    const hasItems = useMemo(() => 
-        cart && cart.cart.cart_items.length > 0,
+    const hasItems = useMemo(() =>
+        cart && cart.cart?.cart_items && cart.cart.cart_items.length > 0,
         [cart]
     );
-    
+
     const handleClearCart = useCallback(async () => {
         if (window.confirm('Are you sure you want to clear your cart? This action cannot be undone.')) {
             try {
@@ -153,7 +153,7 @@ export default function CartPage() {
                                 <div className="flex justify-between items-center bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
                                     <div>
                                         <h2 className="text-lg font-medium text-gray-900 dark:text-white">
-                                            Cart Items ({cart.total_items})
+                                            Cart Items ({cart?.total_items || 0})
                                         </h2>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">
                                             Manage your selected items

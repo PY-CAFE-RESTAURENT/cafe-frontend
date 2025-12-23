@@ -8,9 +8,9 @@ interface CategoryIconProps {
 }
 
 // Category to icon mapping
-const getCategoryIcon = (category: string): JSX.Element => {
+const getCategoryIcon = (category: string): React.ReactElement => {
     const iconClass = "w-6 h-6";
-    
+
     switch (category.toLowerCase()) {
         case 'coffee':
             return (
